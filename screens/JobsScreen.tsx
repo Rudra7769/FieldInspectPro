@@ -12,45 +12,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { JobsStackParamList } from '../navigation/JobsStackNavigator';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
-const MOCK_JOBS: Job[] = [
-  {
-    id: '1',
-    assignmentId: '1',
-    societyName: 'Green Valley Apartments',
-    flatNumber: 'A-101',
-    address: '123 Main Street, Mumbai',
-    checklist: [],
-    status: 'Done',
-    notes: 'All electrical connections verified and working properly.',
-    photos: [],
-    signature: '',
-    gpsCoordinates: { latitude: 19.0760, longitude: 72.8777 },
-    timestamp: new Date().toISOString(),
-    synced: true,
-  },
-  {
-    id: '2',
-    assignmentId: '2',
-    societyName: 'Sunset Gardens',
-    flatNumber: 'B-205',
-    address: '456 Park Avenue, Pune',
-    checklist: [],
-    status: 'Follow-up Needed',
-    notes: 'Minor plumbing issue needs follow-up.',
-    photos: [],
-    signature: '',
-    gpsCoordinates: { latitude: 18.5204, longitude: 73.8567 },
-    timestamp: new Date().toISOString(),
-    synced: true,
-  },
-];
-
 export default function JobsScreen() {
   const { theme } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<NativeStackNavigationProp<JobsStackParamList>>();
-  const { jobs, fetchJobs } = useJobStore();
-  const [localJobs, setLocalJobs] = useState<Job[]>([]);
+  const { jobs, fetchJobs, error } = useJobStore();
 
   useEffect(() => {
     loadJobs();
@@ -59,9 +25,8 @@ export default function JobsScreen() {
   const loadJobs = async () => {
     try {
       await fetchJobs();
-      setLocalJobs(MOCK_JOBS);
     } catch (error) {
-      setLocalJobs(MOCK_JOBS);
+      console.error('Error loading jobs:', error);
     }
   };
 
@@ -124,16 +89,27 @@ export default function JobsScreen() {
   return (
     <View style={[styles.container, { paddingBottom: tabBarHeight + Spacing.xl }]}>
       <FlatList
-        data={localJobs}
+        data={jobs}
         renderItem={renderJob}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.listContent, { paddingTop: Spacing.lg }]}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Feather name="check-square" size={64} color={theme.textSecondary} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No completed jobs
-            </ThemedText>
+            {error ? (
+              <>
+                <Feather name="alert-circle" size={64} color={theme.error} />
+                <ThemedText style={[styles.emptyText, { color: theme.error }]}>
+                  {error}
+                </ThemedText>
+              </>
+            ) : (
+              <>
+                <Feather name="check-square" size={64} color={theme.textSecondary} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  No completed jobs
+                </ThemedText>
+              </>
+            )}
           </View>
         }
       />

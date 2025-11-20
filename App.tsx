@@ -13,6 +13,7 @@ import JobFormScreen from "@/screens/JobFormScreen";
 import SignatureScreen from "@/screens/SignatureScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAuthStore } from "@/src/store/authStore";
+import { useJobStore } from "@/src/store/jobStore";
 import { useTheme } from "@/hooks/useTheme";
 import { initializeDatabase } from "@/src/services/database";
 
@@ -27,13 +28,30 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
   const { isAuthenticated, isLoading, loadSession } = useAuthStore();
+  const { loadJobsFromDatabase, loadQueuedJobsFromDatabase, setDbReady } = useJobStore();
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (Platform.OS !== 'web') {
-      initializeDatabase();
-    }
-    loadSession();
+    const bootstrap = async () => {
+      try {
+        await loadSession();
+        if (Platform.OS !== 'web') {
+          try {
+            await initializeDatabase();
+            setDbReady(true);
+            await loadJobsFromDatabase();
+            await loadQueuedJobsFromDatabase();
+          } catch (dbError) {
+            console.error('Database initialization error:', dbError);
+            setDbReady(false);
+          }
+        }
+      } catch (error) {
+        console.error('Bootstrap error:', error);
+      }
+    };
+    
+    bootstrap();
   }, []);
 
   if (isLoading) {

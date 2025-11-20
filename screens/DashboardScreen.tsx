@@ -11,40 +11,12 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
-const MOCK_ASSIGNMENTS: Assignment[] = [
-  {
-    id: '1',
-    societyName: 'Green Valley Apartments',
-    flatNumbers: ['A-101', 'A-102', 'A-103'],
-    address: '123 Main Street, Mumbai',
-    urgency: 'high',
-    status: 'pending',
-  },
-  {
-    id: '2',
-    societyName: 'Sunset Gardens',
-    flatNumbers: ['B-205', 'B-206'],
-    address: '456 Park Avenue, Pune',
-    urgency: 'medium',
-    status: 'pending',
-  },
-  {
-    id: '3',
-    societyName: 'Royal Heights',
-    flatNumbers: ['C-304'],
-    address: '789 Hill Road, Bangalore',
-    urgency: 'low',
-    status: 'pending',
-  },
-];
-
 export default function DashboardScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
-  const { assignments, isLoading, fetchAssignments } = useJobStore();
+  const { assignments, isLoading, fetchAssignments, error } = useJobStore();
   const [refreshing, setRefreshing] = useState(false);
-  const [localAssignments, setLocalAssignments] = useState<Assignment[]>([]);
 
   useEffect(() => {
     loadAssignments();
@@ -53,9 +25,8 @@ export default function DashboardScreen() {
   const loadAssignments = async () => {
     try {
       await fetchAssignments();
-      setLocalAssignments(MOCK_ASSIGNMENTS);
     } catch (error) {
-      setLocalAssignments(MOCK_ASSIGNMENTS);
+      console.error('Error loading assignments:', error);
     }
   };
 
@@ -112,7 +83,7 @@ export default function DashboardScreen() {
   return (
     <View style={[styles.container, { paddingBottom: tabBarHeight + Spacing.xl }]}>
       <FlatList
-        data={localAssignments}
+        data={assignments}
         renderItem={renderAssignment}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.listContent, { paddingTop: Spacing.lg }]}
@@ -121,10 +92,21 @@ export default function DashboardScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Feather name="inbox" size={64} color={theme.textSecondary} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No assignments
-            </ThemedText>
+            {error ? (
+              <>
+                <Feather name="alert-circle" size={64} color={theme.error} />
+                <ThemedText style={[styles.emptyText, { color: theme.error }]}>
+                  {error}
+                </ThemedText>
+              </>
+            ) : (
+              <>
+                <Feather name="inbox" size={64} color={theme.textSecondary} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  No assignments
+                </ThemedText>
+              </>
+            )}
           </View>
         }
       />

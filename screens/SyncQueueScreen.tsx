@@ -13,15 +13,26 @@ import NetInfo from '@react-native-community/netinfo';
 export default function SyncQueueScreen() {
   const { theme } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
-  const { queuedJobs, removeFromQueue } = useJobStore();
+  const { queuedJobs, removeFromQueue, loadQueuedJobsFromDatabase, error } = useJobStore();
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       setIsOnline(state.isConnected ?? false);
     });
+    
+    loadQueuedJobs();
+    
     return () => unsubscribe();
   }, []);
+  
+  const loadQueuedJobs = async () => {
+    try {
+      await loadQueuedJobsFromDatabase();
+    } catch (error) {
+      console.error('Error loading queued jobs:', error);
+    }
+  };
 
   const handleDelete = (jobId: string) => {
     Alert.alert(
@@ -122,10 +133,21 @@ export default function SyncQueueScreen() {
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Feather name="check-circle" size={64} color={theme.success} />
-            <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
-              All synced
-            </ThemedText>
+            {error ? (
+              <>
+                <Feather name="alert-circle" size={64} color={theme.error} />
+                <ThemedText style={[styles.emptyText, { color: theme.error }]}>
+                  {error}
+                </ThemedText>
+              </>
+            ) : (
+              <>
+                <Feather name="check-circle" size={64} color={theme.success} />
+                <ThemedText style={[styles.emptyText, { color: theme.textSecondary }]}>
+                  All synced
+                </ThemedText>
+              </>
+            )}
           </View>
         }
       />

@@ -11,7 +11,7 @@ import * as Location from 'expo-location';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { ChecklistItem, JobStatus } from '../src/types';
+import { ChecklistItem, JobStatus, QueuedJob } from '../src/types';
 import { useJobStore } from '../src/store/jobStore';
 
 const CHECKLIST_DATA: ChecklistItem[] = [
@@ -96,7 +96,7 @@ export default function JobFormScreen() {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!signature) {
       Alert.alert('Signature Required', 'Please capture a signature before submitting.');
       return;
@@ -118,10 +118,21 @@ export default function JobFormScreen() {
       synced: false,
     };
 
-    useJobStore.getState().addJob(job);
-    Alert.alert('Success', 'Inspection submitted successfully!', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    try {
+      await useJobStore.getState().addJob(job);
+      
+      const queuedJob: QueuedJob = {
+        ...job,
+        retryCount: 0,
+      };
+      await useJobStore.getState().addToQueue(queuedJob);
+      
+      Alert.alert('Success', 'Inspection saved! Will sync when online.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save inspection. Please try again.');
+    }
   };
 
   const groupedChecklist = checklist.reduce((acc, item) => {
