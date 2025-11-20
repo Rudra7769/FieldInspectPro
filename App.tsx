@@ -1,33 +1,104 @@
-import React from "react";
-import { StyleSheet } from "react-native";
+import React, { useEffect } from "react";
+import { StyleSheet, View, ActivityIndicator, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import MainTabNavigator from "@/navigation/MainTabNavigator";
+import LoginScreen from "@/screens/LoginScreen";
+import JobFormScreen from "@/screens/JobFormScreen";
+import SignatureScreen from "@/screens/SignatureScreen";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useAuthStore } from "@/src/store/authStore";
+import { useTheme } from "@/hooks/useTheme";
+import { initializeDatabase } from "@/src/services/database";
+
+export type RootStackParamList = {
+  Login: undefined;
+  MainTabs: undefined;
+  JobForm: { assignmentId?: string };
+  Signature: { onSignatureCapture: (signature: string) => void };
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function RootNavigator() {
+  const { isAuthenticated, isLoading, loadSession } = useAuthStore();
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      initializeDatabase();
+    }
+    loadSession();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: theme.backgroundDefault }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!isAuthenticated ? (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      ) : (
+        <>
+          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          <Stack.Group screenOptions={{ presentation: 'modal' }}>
+            <Stack.Screen 
+              name="JobForm" 
+              component={JobFormScreen}
+              options={{ 
+                headerShown: true,
+                title: 'Inspection',
+              }}
+            />
+            <Stack.Screen 
+              name="Signature" 
+              component={SignatureScreen}
+              options={{ 
+                headerShown: true,
+                title: 'Signature',
+              }}
+            />
+          </Stack.Group>
+        </>
+      )}
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   return (
-  <ErrorBoundary>
-    <SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
           <KeyboardProvider>
             <NavigationContainer>
-              <MainTabNavigator />
+              <RootNavigator />
             </NavigationContainer>
             <StatusBar style="auto" />
           </KeyboardProvider>
         </GestureHandlerRootView>
       </SafeAreaProvider>
-  </ErrorBoundary>
+    </ErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
