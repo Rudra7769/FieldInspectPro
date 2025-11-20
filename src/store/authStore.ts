@@ -15,6 +15,19 @@ interface AuthState {
 const AUTH_TOKEN_KEY = '@field_inspector_token';
 const USER_KEY = '@field_inspector_user';
 
+const DEMO_CREDENTIALS = {
+  email: 'demo@engineer.com',
+  password: 'demo123',
+};
+
+const DEMO_USER: User = {
+  id: 'demo-user-001',
+  name: 'John Smith',
+  email: 'demo@engineer.com',
+  engineerId: 'ENG-2024-001',
+  assignedRegion: 'North District',
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
@@ -23,23 +36,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email: string, password: string) => {
     try {
-      const response = await fetch('https://api.placeholder.com/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
+      if (email.toLowerCase() === DEMO_CREDENTIALS.email && password === DEMO_CREDENTIALS.password) {
+        const token = `demo_token_${Date.now()}`;
+        
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(DEMO_USER));
+  
+        set({ user: DEMO_USER, token, isAuthenticated: true });
+      } else {
+        throw new Error('Invalid credentials. Use demo@engineer.com / demo123');
       }
-
-      const data = await response.json();
-      const { token, user } = data;
-
-      await AsyncStorage.setItem(AUTH_TOKEN_KEY, token);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
-
-      set({ user, token, isAuthenticated: true });
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : 'Login failed');
     }

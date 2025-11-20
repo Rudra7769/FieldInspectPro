@@ -46,13 +46,20 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.form}>
+          <View style={[styles.demoHint, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
+            <Feather name="info" size={16} color={theme.primary} />
+            <ThemedText style={[styles.demoHintText, { color: theme.primary }]}>
+              Demo Login: demo@engineer.com / demo123
+            </ThemedText>
+          </View>
+          
           <View style={styles.inputContainer}>
             <ThemedText style={[styles.label, { color: theme.text }]}>Email</ThemedText>
             <TextInput
               style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
               value={email}
               onChangeText={setEmail}
-              placeholder="engineer@example.com"
+              placeholder="demo@engineer.com"
               placeholderTextColor={theme.textSecondary}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -169,6 +176,18 @@ const styles = StyleSheet.create({
   errorText: {
     ...Typography.caption,
     flex: 1,
+  },
+  demoHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+  },
+  demoHintText: {
+    ...Typography.caption,
+    fontWeight: '500',
   },
   button: {
     height: Spacing.buttonHeight,

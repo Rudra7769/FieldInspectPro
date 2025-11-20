@@ -40,6 +40,12 @@ export default function ProfileScreen() {
         {user?.engineerId ? (
           <ThemedText style={[styles.id, { color: theme.textSecondary }]}>ID: {user.engineerId}</ThemedText>
         ) : null}
+        {user?.assignedRegion ? (
+          <View style={[styles.regionBadge, { backgroundColor: theme.primary + '20' }]}>
+            <Feather name="map-pin" size={14} color={theme.primary} />
+            <ThemedText style={[styles.regionText, { color: theme.primary }]}>{user.assignedRegion}</ThemedText>
+          </View>
+        ) : null}
       </Card>
 
       <View style={styles.section}>
@@ -135,6 +141,18 @@ const styles = StyleSheet.create({
   },
   id: {
     ...Typography.caption,
+  },
+  regionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.xs,
+  },
+  regionText: {
+    ...Typography.caption,
+    fontWeight: '600',
   },
   section: {
     gap: Spacing.md,
