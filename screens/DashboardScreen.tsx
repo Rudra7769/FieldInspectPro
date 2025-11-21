@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Pressable, RefreshControl, FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ScreenScrollView } from '../components/ScreenScrollView';
 import { ThemedText } from '../components/ThemedText';
 import { Card } from '../components/Card';
@@ -7,14 +9,15 @@ import { useTheme } from '../hooks/useTheme';
 import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useJobStore } from '../src/store/jobStore';
 import { Assignment } from '../src/types';
+import type { HomeStackParamList } from '../navigation/HomeStackNavigator';
 import { Feather } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+ 
 
 export default function DashboardScreen() {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { assignments, isLoading, fetchAssignments, error } = useJobStore();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -36,57 +39,41 @@ export default function DashboardScreen() {
     setRefreshing(false);
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'high':
-        return theme.error;
-      case 'medium':
-        return theme.warning;
-      case 'low':
-        return theme.success;
-      default:
-        return theme.textSecondary;
-    }
-  };
-
   const renderAssignment = ({ item }: { item: Assignment }) => (
-    <Card style={styles.assignmentCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardTitleContainer}>
-          <ThemedText style={styles.societyName}>{item.societyName}</ThemedText>
-          <View style={[styles.urgencyBadge, { backgroundColor: getUrgencyColor(item.urgency) + '20' }]}>
-            <ThemedText style={[styles.urgencyText, { color: getUrgencyColor(item.urgency) }]}>
-              {item.urgency.toUpperCase()}
+    <Pressable onPress={() => navigation.navigate('AssignmentFlats', { assignment: item })}>
+      <Card style={styles.assignmentCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.cardTitleContainer}>
+            <ThemedText style={styles.societyName}>{item.societyName}</ThemedText>
+          </View>
+          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+        </View>
+        
+        <View style={styles.cardContent}>
+          <View style={styles.infoRow}>
+            <Feather name="home" size={16} color={theme.textSecondary} />
+            <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
+              {item.flatNumbers.join(', ')}
+            </ThemedText>
+          </View>
+          <View style={styles.infoRow}>
+            <Feather name="map-pin" size={16} color={theme.textSecondary} />
+            <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
+              {item.address}
             </ThemedText>
           </View>
         </View>
-        <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-      </View>
-      
-      <View style={styles.cardContent}>
-        <View style={styles.infoRow}>
-          <Feather name="home" size={16} color={theme.textSecondary} />
-          <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
-            {item.flatNumbers.join(', ')}
-          </ThemedText>
-        </View>
-        <View style={styles.infoRow}>
-          <Feather name="map-pin" size={16} color={theme.textSecondary} />
-          <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
-            {item.address}
-          </ThemedText>
-        </View>
-      </View>
-    </Card>
+      </Card>
+    </Pressable>
   );
 
   return (
-    <View style={[styles.container, { paddingBottom: tabBarHeight + Spacing.xl }]}>
+    <View style={[styles.container, { paddingBottom: tabBarHeight + Spacing.xl }]}> 
       <FlatList
         data={assignments}
         renderItem={renderAssignment}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={[styles.listContent, { paddingTop: Spacing.lg }]}
+        contentContainerStyle={[styles.listContent, { paddingTop: 0 }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
         }
@@ -119,7 +106,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    padding: Spacing.lg,
+    paddingTop: 0,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
     gap: Spacing.lg,
   },
   assignmentCard: {
@@ -140,15 +129,6 @@ const styles = StyleSheet.create({
   societyName: {
     ...Typography.h2,
     flex: 1,
-  },
-  urgencyBadge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  urgencyText: {
-    ...Typography.caption,
-    fontWeight: '600',
   },
   cardContent: {
     gap: Spacing.sm,
