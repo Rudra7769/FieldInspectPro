@@ -7,6 +7,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  engineerId?: string;
+  assignedRegion?: string;
 }
 
 interface AuthState {

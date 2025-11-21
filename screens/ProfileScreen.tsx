@@ -35,11 +35,11 @@ export default function ProfileScreen() {
         <View style={[styles.avatarContainer, { backgroundColor: theme.primary + '20' }]}>
           <Feather name="user" size={48} color={theme.primary} />
         </View>
-        <ThemedText style={styles.name}>{user?.name || 'Engineer'}</ThemedText>
-        <ThemedText style={[styles.email, { color: theme.textSecondary }]}>{user?.email || ''}</ThemedText>
         {user?.engineerId ? (
           <ThemedText style={[styles.id, { color: theme.textSecondary }]}>ID: {user.engineerId}</ThemedText>
         ) : null}
+        <ThemedText style={styles.name}>{user?.name || 'Engineer'}</ThemedText>
+        <ThemedText style={[styles.email, { color: theme.textSecondary }]}>{user?.email || ''}</ThemedText>
         {user?.assignedRegion ? (
           <View style={[styles.regionBadge, { backgroundColor: theme.primary + '20' }]}>
             <Feather name="map-pin" size={14} color={theme.primary} />
@@ -47,43 +47,6 @@ export default function ProfileScreen() {
           </View>
         ) : null}
       </Card>
-
-      <View style={styles.section}>
-        <ThemedText style={styles.sectionTitle}>Settings</ThemedText>
-        
-        <Pressable 
-          style={({ pressed }) => [
-            styles.menuItem,
-            { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }
-          ]}
-        >
-          <Feather name="bell" size={20} color={theme.text} />
-          <ThemedText style={styles.menuText}>Notifications</ThemedText>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-        </Pressable>
-
-        <Pressable 
-          style={({ pressed }) => [
-            styles.menuItem,
-            { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }
-          ]}
-        >
-          <Feather name="refresh-cw" size={20} color={theme.text} />
-          <ThemedText style={styles.menuText}>Sync Preferences</ThemedText>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-        </Pressable>
-
-        <Pressable 
-          style={({ pressed }) => [
-            styles.menuItem,
-            { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }
-          ]}
-        >
-          <Feather name="database" size={20} color={theme.text} />
-          <ThemedText style={styles.menuText}>Cache Management</ThemedText>
-          <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-        </Pressable>
-      </View>
 
       <View style={styles.section}>
         <ThemedText style={styles.sectionTitle}>About</ThemedText>

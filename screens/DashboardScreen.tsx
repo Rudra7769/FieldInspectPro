@@ -10,6 +10,7 @@ import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { useJobStore } from '../src/store/jobStore';
 import { Assignment } from '../src/types';
 import { useTimerStore } from '../src/store/timerStore';
+import { useFlatCompletionStore } from '../src/store/flatCompletionStore';
 import type { HomeStackParamList } from '../navigation/HomeStackNavigator';
 import { Feather } from '@expo/vector-icons';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -23,6 +24,7 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [timers, setTimers] = useState<Record<string, { isRunning: boolean; startTime: number | null; elapsedMs?: number }>>({});
   const timerStore = useTimerStore();
+  const isFlatCompleted = useFlatCompletionStore((s) => s.isFlatCompleted);
 
   useEffect(() => {
     loadAssignments();
@@ -89,48 +91,67 @@ export default function DashboardScreen() {
     const minutes = elapsedMs != null ? Math.floor(elapsedMs / 60000) : null;
     const seconds = elapsedMs != null ? Math.floor((elapsedMs % 60000) / 1000) : null;
 
-    return (
-      <Card style={styles.assignmentCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleContainer}>
-            <ThemedText style={styles.societyName}>{item.societyName}</ThemedText>
-          </View>
-          <View style={styles.actionsRow}>
-            {!isRunning ? (
-              <Pressable style={[styles.actionButton, { backgroundColor: theme.primary }]} onPress={() => handleStart(item)}>
-                <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Start</ThemedText>
-              </Pressable>
-            ) : (
-              <Pressable style={[styles.actionButton, { backgroundColor: theme.error }]} onPress={() => handleStop(item)}>
-                <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Stop</ThemedText>
-              </Pressable>
-            )}
-            <Pressable onPress={() => navigation.navigate('AssignmentFlats', { assignment: item })}>
-              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-            </Pressable>
-          </View>
-        </View>
+    const allFlatsCompleted = item.flatNumbers.length > 0 &&
+      item.flatNumbers.every((flat) => isFlatCompleted(item.societyName, flat));
 
-        <View style={styles.cardContent}>
-          <View style={styles.infoRow}>
-            <Feather name="home" size={16} color={theme.textSecondary} />
-            <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
-              {item.flatNumbers.join(', ')}
-            </ThemedText>
+    return (
+      <Pressable
+        onPress={() => {
+          if (!isRunning) {
+            Alert.alert('Start Required', 'Please press Start to begin work for this society.');
+            return;
+          }
+          navigation.navigate('AssignmentFlats', { assignment: item });
+        }}
+      >
+        <Card style={styles.assignmentCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardTitleContainer}>
+              <ThemedText style={styles.societyName}>{item.societyName}</ThemedText>
+            </View>
+            <View style={styles.actionsRow}>
+              {allFlatsCompleted ? (
+                <View style={[styles.doneBadge, { backgroundColor: theme.success }]}> 
+                  <ThemedText style={[styles.doneBadgeText, { color: theme.buttonText }]}>Done</ThemedText>
+                </View>
+              ) : (
+                <>
+                  {!isRunning ? (
+                    <Pressable style={[styles.actionButton, { backgroundColor: theme.primary }]} onPress={() => handleStart(item)}>
+                      <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Start</ThemedText>
+                    </Pressable>
+                  ) : (
+                    <Pressable style={[styles.actionButton, { backgroundColor: theme.error }]} onPress={() => handleStop(item)}>
+                      <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Stop</ThemedText>
+                    </Pressable>
+                  )}
+                </>
+              )}
+              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <Feather name="map-pin" size={16} color={theme.textSecondary} />
-            <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
-              {item.address}
-            </ThemedText>
+
+          <View style={styles.cardContent}>
+            <View style={styles.infoRow}>
+              <Feather name="home" size={16} color={theme.textSecondary} />
+              <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
+                {item.flatNumbers.length} {item.flatNumbers.length === 1 ? 'flat' : 'flats'}
+              </ThemedText>
+            </View>
+            <View style={styles.infoRow}>
+              <Feather name="map-pin" size={16} color={theme.textSecondary} />
+              <ThemedText style={[styles.infoText, { color: theme.textSecondary }]}>
+                {item.address}
+              </ThemedText>
+            </View>
+            {elapsedMs != null ? (
+              <ThemedText style={{ marginTop: Spacing.xs, color: theme.textSecondary }}>
+                Last time: {minutes}m {seconds}s
+              </ThemedText>
+            ) : null}
           </View>
-          {elapsedMs != null ? (
-            <ThemedText style={{ marginTop: Spacing.xs, color: theme.textSecondary }}>
-              Last time: {minutes}m {seconds}s
-            </ThemedText>
-          ) : null}
-        </View>
-      </Card>
+        </Card>
+      </Pressable>
     );
   };
 
@@ -163,6 +184,16 @@ export default function DashboardScreen() {
             )}
           </View>
         }
+        ListHeaderComponent={
+          assignments.length > 0 ? (
+            <View style={styles.listHeader}>
+              <ThemedText style={styles.listTitle}>Assigned Societies</ThemedText>
+              <ThemedText style={[styles.listSubtitle, { color: theme.textSecondary }]}>
+                {assignments.length} {assignments.length === 1 ? 'society' : 'societies'} assigned
+              </ThemedText>
+            </View>
+          ) : null
+        }
       />
     </View>
   );
@@ -175,12 +206,29 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 0,
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing['2xl'],
     gap: Spacing.lg,
+  },
+  listHeader: {
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  listTitle: {
+    ...Typography.h1,
+  },
+  listSubtitle: {
+    ...Typography.body,
   },
   assignmentCard: {
     padding: Spacing.lg,
     gap: Spacing.md,
+    borderRadius: BorderRadius.md,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -210,6 +258,16 @@ const styles = StyleSheet.create({
   actionButtonText: {
     ...Typography.caption,
     fontWeight: '600',
+  },
+  doneBadge: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.xs,
+  },
+  doneBadgeText: {
+    ...Typography.caption,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   cardContent: {
     gap: Spacing.sm,

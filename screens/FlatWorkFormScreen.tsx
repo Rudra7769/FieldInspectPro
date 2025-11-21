@@ -9,6 +9,7 @@ import { Spacing, Typography, BorderRadius } from '../constants/theme';
 import { HomeStackParamList } from '../navigation/HomeStackNavigator';
 import type { RootStackParamList } from '../App';
 import { ScreenKeyboardAwareScrollView } from '../components/ScreenKeyboardAwareScrollView';
+import { useFlatCompletionStore } from '../src/store/flatCompletionStore';
 
  type FlatWorkFormRouteProp = RouteProp<HomeStackParamList, 'FlatWorkForm'>;
 
@@ -19,6 +20,7 @@ export default function FlatWorkFormScreen() {
   const { flatNumber, societyName } = route.params;
 
   const [mode, setMode] = useState<'completed' | 'not_completed'>('completed');
+  const [flatNo, setFlatNo] = useState(flatNumber);
   const [ownerName, setOwnerName] = useState('');
   const [ownerNumber, setOwnerNumber] = useState('');
   const [serviceType, setServiceType] = useState('WiFi');
@@ -28,6 +30,7 @@ export default function FlatWorkFormScreen() {
     'customer_not_home' | 'customer_refused' | 'flat_locked' | 'customer_rescheduled' | 'power_outage' | 'other'
   >('customer_not_home');
   const [signature, setSignature] = useState('');
+  const markFlatCompleted = useFlatCompletionStore((s) => s.markFlatCompleted);
 
   const handleSignature = () => {
     navigation.navigate('Signature', {
@@ -65,6 +68,7 @@ export default function FlatWorkFormScreen() {
       return;
     }
 
+    markFlatCompleted(societyName, flatNumber);
     Alert.alert('Submitted', 'Work completed details submitted successfully.', [
       { text: 'OK', onPress: () => navigation.goBack() },
     ]);
@@ -88,6 +92,7 @@ export default function FlatWorkFormScreen() {
       return;
     }
 
+    markFlatCompleted(societyName, flatNo || flatNumber);
     Alert.alert('Submitted', 'Work not completed details submitted successfully.', [
       { text: 'OK', onPress: () => navigation.goBack() },
     ]);
@@ -128,8 +133,22 @@ export default function FlatWorkFormScreen() {
     <ScreenKeyboardAwareScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerInfo}>
           <ThemedText style={styles.societyName}>{societyName}</ThemedText>
-          <ThemedText style={[styles.flatNumber, { color: theme.textSecondary }]}>Flat: {flatNumber}</ThemedText>
+          <ThemedText style={[styles.flatNumber, { color: theme.textSecondary }]}>Flat: {flatNo}</ThemedText>
         </View>
+
+        <Card style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Flat Details</ThemedText>
+          <View style={styles.readonlyRow}>
+            <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Flat No</ThemedText>
+            <TextInput
+              style={[styles.input, { flex: 0.6, borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
+              value={flatNo}
+              onChangeText={setFlatNo}
+              placeholder="Enter flat no"
+              placeholderTextColor={theme.textSecondary}
+            />
+          </View>
+        </Card>
 
         <View style={styles.modeToggle}>
           <Pressable
