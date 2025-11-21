@@ -37,36 +37,46 @@ export default function LoginScreen() {
   };
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top + 60 }]}>
+    <ThemedView style={[styles.container, { paddingTop: insets.top + 40 }]}>
       <View style={styles.header}>
-        <Feather name="clipboard" size={48} color="#007aff" />
+        <View style={styles.iconCircle}>
+          <Feather name="clipboard" size={32} color="#0ea5e9" />
+        </View>
         <ThemedText style={styles.title}>Field Inspector</ThemedText>
-        <ThemedText style={styles.subtitle}>Engineer Login</ThemedText>
+        <ThemedText style={styles.subtitle}>Engineer login to continue</ThemedText>
       </View>
 
       <View style={styles.form}>
-        <ThemedText>Email</ThemedText>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-
-        <ThemedText>Password</ThemedText>
-        <View style={styles.passwordContainer}>
+        <View style={styles.fieldGroup}>
+          <ThemedText style={styles.label}>Email</ThemedText>
           <TextInput
-            style={[styles.input, { paddingRight: 45 }]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            placeholder="Enter your email"
+            placeholderTextColor="rgba(255,255,255,0.5)"
           />
-          <Pressable
-            style={styles.eyeIcon}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#555" />
-          </Pressable>
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <ThemedText style={styles.label}>Password</ThemedText>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { paddingRight: 45 }]}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              placeholder="Enter your password"
+              placeholderTextColor="rgba(255,255,255,0.5)"
+            />
+            <Pressable
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="rgba(255,255,255,0.7)" />
+            </Pressable>
+          </View>
         </View>
 
         {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
@@ -88,17 +98,31 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  header: { alignItems: "center", marginBottom: 40 },
-  title: { fontSize: 28, fontWeight: "700", marginTop: 12 },
-  subtitle: { color: "#666" },
-  form: { gap: 14 },
+  container: { flex: 1, padding: 24, backgroundColor: "#020617" },
+  header: { alignItems: "center", marginBottom: 40, gap: 8 },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(15,23,42,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(148,163,184,0.4)",
+  },
+  title: { fontSize: 26, fontWeight: "700", marginTop: 12, color: "#fff" },
+  subtitle: { color: "rgba(255,255,255,0.7)" },
+  form: { gap: 18 },
+  fieldGroup: { gap: 6 },
+  label: { color: "rgba(255,255,255,0.9)", fontSize: 14 },
   input: {
     height: 50,
     borderWidth: 1,
-    borderRadius: 8,
-    borderColor: "#ddd",
-    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderColor: "rgba(148,163,184,0.5)",
+    paddingHorizontal: 14,
+    color: "#fff",
+    backgroundColor: "rgba(15,23,42,0.9)",
   },
   passwordContainer: { position: "relative" },
   eyeIcon: {
@@ -107,13 +131,13 @@ const styles = StyleSheet.create({
     top: 14,
   },
   button: {
-    backgroundColor: "#007aff",
+    backgroundColor: "#0ea5e9",
     height: 48,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
-    marginTop: 10,
+    borderRadius: 999,
+    marginTop: 18,
   },
   buttonText: { color: "white", fontWeight: "700" },
-  error: { color: "red", marginTop: 4 },
+  error: { color: "#f97373", marginTop: 6 },
 });

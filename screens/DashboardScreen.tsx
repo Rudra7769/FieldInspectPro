@@ -25,6 +25,7 @@ export default function DashboardScreen() {
   const [timers, setTimers] = useState<Record<string, { isRunning: boolean; startTime: number | null; elapsedMs?: number }>>({});
   const timerStore = useTimerStore();
   const isFlatCompleted = useFlatCompletionStore((s) => s.isFlatCompleted);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     loadAssignments();
@@ -94,14 +95,17 @@ export default function DashboardScreen() {
     const allFlatsCompleted = item.flatNumbers.length > 0 &&
       item.flatNumbers.every((flat) => isFlatCompleted(item.societyName, flat));
 
+    const isExpanded = expandedId === item.id;
+
     return (
       <Pressable
         onPress={() => {
-          if (!isRunning) {
-            Alert.alert('Start Required', 'Please press Start to begin work for this society.');
-            return;
+          // toggle expand/collapse for this card
+          setExpandedId((prev) => (prev === item.id ? null : item.id));
+          // if timer already running, also navigate to flats
+          if (isRunning) {
+            navigation.navigate('AssignmentFlats', { assignment: item });
           }
-          navigation.navigate('AssignmentFlats', { assignment: item });
         }}
       >
         <Card style={styles.assignmentCard}>
@@ -109,26 +113,11 @@ export default function DashboardScreen() {
             <View style={styles.cardTitleContainer}>
               <ThemedText style={styles.societyName}>{item.societyName}</ThemedText>
             </View>
-            <View style={styles.actionsRow}>
-              {allFlatsCompleted ? (
-                <View style={[styles.doneBadge, { backgroundColor: theme.success }]}> 
-                  <ThemedText style={[styles.doneBadgeText, { color: theme.buttonText }]}>Done</ThemedText>
-                </View>
-              ) : (
-                <>
-                  {!isRunning ? (
-                    <Pressable style={[styles.actionButton, { backgroundColor: theme.primary }]} onPress={() => handleStart(item)}>
-                      <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Start</ThemedText>
-                    </Pressable>
-                  ) : (
-                    <Pressable style={[styles.actionButton, { backgroundColor: theme.error }]} onPress={() => handleStop(item)}>
-                      <ThemedText style={[styles.actionButtonText, { color: theme.buttonText }]}>Stop</ThemedText>
-                    </Pressable>
-                  )}
-                </>
-              )}
-              <Feather name="chevron-right" size={20} color={theme.textSecondary} />
-            </View>
+            <Feather
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color={theme.textSecondary}
+            />
           </View>
 
           <View style={styles.cardContent}>
@@ -150,6 +139,25 @@ export default function DashboardScreen() {
               </ThemedText>
             ) : null}
           </View>
+
+          {isExpanded ? (
+            <View style={styles.footerRow}>
+              {allFlatsCompleted ? (
+                <View style={[styles.fullWidthFooter, { backgroundColor: theme.success }]}> 
+                  <ThemedText style={[styles.fullWidthFooterText, { color: theme.buttonText }]}>Done</ThemedText>
+                </View>
+              ) : (
+                <Pressable
+                  style={[styles.fullWidthFooter, { backgroundColor: isRunning ? theme.error : theme.primary }]}
+                  onPress={() => (isRunning ? handleStop(item) : handleStart(item))}
+                >
+                  <ThemedText style={[styles.fullWidthFooterText, { color: theme.buttonText }]}>
+                    {isRunning ? 'Stop' : 'Start'}
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+          ) : null}
         </Card>
       </Pressable>
     );
@@ -271,6 +279,21 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     gap: Spacing.sm,
+  },
+  footerRow: {
+    marginTop: Spacing.md,
+    flexDirection: 'row',
+  },
+  fullWidthFooter: {
+    flex: 1,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullWidthFooterText: {
+    ...Typography.button,
+    fontWeight: '700',
   },
   infoRow: {
     flexDirection: 'row',
