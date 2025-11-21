@@ -1,203 +1,119 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemedText } from '../components/ThemedText';
-import { ThemedView } from '../components/ThemedView';
-import { useTheme } from '../hooks/useTheme';
-import { Spacing, Typography, BorderRadius } from '../constants/theme';
-import { useAuthStore } from '../src/store/authStore';
-import { Feather } from '@expo/vector-icons';
+// screens/LoginScreen.tsx
+
+import React, { useState } from "react";
+import { View, StyleSheet, TextInput, Pressable, ActivityIndicator } from "react-native";
+import { ThemedText } from "../components/ThemedText";
+import { ThemedView } from "../components/ThemedView";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuthStore } from "../src/store/authStore";
+import { Feather } from "@expo/vector-icons";
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { theme } = useTheme();
-  const login = useAuthStore((state) => state.login);
+  const login = useAuthStore((s) => s.login);
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("demo@engineer.com");
+  const [password, setPassword] = useState("demo123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError('Please enter both email and password');
+      setError("Enter email & password");
       return;
     }
 
-    setError('');
     setIsLoading(true);
+    setError("");
 
     try {
-      await login(email, password);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      await login(email.trim(), password);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 40 }]}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Feather name="clipboard" size={48} color={theme.primary} />
-          <ThemedText style={[styles.title, { color: theme.text }]}>Field Inspector</ThemedText>
-          <ThemedText style={[styles.subtitle, { color: theme.textSecondary }]}>Engineer Login</ThemedText>
-        </View>
+    <ThemedView style={[styles.container, { paddingTop: insets.top + 60 }]}>
+      <View style={styles.header}>
+        <Feather name="clipboard" size={48} color="#007aff" />
+        <ThemedText style={styles.title}>Field Inspector</ThemedText>
+        <ThemedText style={styles.subtitle}>Engineer Login</ThemedText>
+      </View>
 
-        <View style={styles.form}>
-          <View style={[styles.demoHint, { backgroundColor: theme.primary + '15', borderColor: theme.primary + '30' }]}>
-            <Feather name="info" size={16} color={theme.primary} />
-            <ThemedText style={[styles.demoHintText, { color: theme.primary }]}>
-              Demo Login: demo@engineer.com / demo123
-            </ThemedText>
-          </View>
-          
-          <View style={styles.inputContainer}>
-            <ThemedText style={[styles.label, { color: theme.text }]}>Email</ThemedText>
-            <TextInput
-              style={[styles.input, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="demo@engineer.com"
-              placeholderTextColor={theme.textSecondary}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!isLoading}
-            />
-          </View>
+      <View style={styles.form}>
+        <ThemedText>Email</ThemedText>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+        />
 
-          <View style={styles.inputContainer}>
-            <ThemedText style={[styles.label, { color: theme.text }]}>Password</ThemedText>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.input, styles.passwordInput, { borderColor: theme.border, color: theme.text, backgroundColor: theme.surface }]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor={theme.textSecondary}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isLoading}
-              />
-              <Pressable
-                style={styles.eyeIcon}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={isLoading}
-              >
-                <Feather name={showPassword ? 'eye-off' : 'eye'} size={20} color={theme.textSecondary} />
-              </Pressable>
-            </View>
-          </View>
-
-          {error ? (
-            <View style={[styles.errorContainer, { backgroundColor: theme.error + '20' }]}>
-              <Feather name="alert-circle" size={16} color={theme.error} />
-              <ThemedText style={[styles.errorText, { color: theme.error }]}>{error}</ThemedText>
-            </View>
-          ) : null}
-
+        <ThemedText>Password</ThemedText>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, { paddingRight: 45 }]}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
           <Pressable
-            style={[styles.button, { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 }]}
-            onPress={handleLogin}
-            disabled={isLoading}
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(!showPassword)}
           >
-            {isLoading ? (
-              <ActivityIndicator color={theme.buttonText} />
-            ) : (
-              <ThemedText style={[styles.buttonText, { color: theme.buttonText }]}>LOGIN</ThemedText>
-            )}
+            <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#555" />
           </Pressable>
         </View>
+
+        {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+
+        <Pressable
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <ThemedText style={styles.buttonText}>LOGIN</ThemedText>
+          )}
+        </Pressable>
       </View>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: Spacing.xl,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Spacing['4xl'],
-  },
-  title: {
-    ...Typography.h1,
-    marginTop: Spacing.lg,
-  },
-  subtitle: {
-    ...Typography.body,
-    marginTop: Spacing.xs,
-  },
-  form: {
-    gap: Spacing.lg,
-  },
-  inputContainer: {
-    gap: Spacing.sm,
-  },
-  label: {
-    ...Typography.body,
-  },
+  container: { flex: 1, padding: 20 },
+  header: { alignItems: "center", marginBottom: 40 },
+  title: { fontSize: 28, fontWeight: "700", marginTop: 12 },
+  subtitle: { color: "#666" },
+  form: { gap: 14 },
   input: {
-    height: Spacing.inputHeight,
+    height: 50,
     borderWidth: 1,
-    borderRadius: BorderRadius.xs,
-    paddingHorizontal: Spacing.lg,
-    ...Typography.body,
+    borderRadius: 8,
+    borderColor: "#ddd",
+    paddingHorizontal: 12,
   },
-  passwordContainer: {
-    position: 'relative',
-  },
-  passwordInput: {
-    paddingRight: Spacing['5xl'],
-  },
+  passwordContainer: { position: "relative" },
   eyeIcon: {
-    position: 'absolute',
-    right: Spacing.lg,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
-  },
-  errorText: {
-    ...Typography.caption,
-    flex: 1,
-  },
-  demoHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: BorderRadius.xs,
-    borderWidth: 1,
-  },
-  demoHintText: {
-    ...Typography.caption,
-    fontWeight: '500',
+    position: "absolute",
+    right: 12,
+    top: 14,
   },
   button: {
-    height: Spacing.buttonHeight,
-    borderRadius: BorderRadius.xs,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: Spacing.md,
+    backgroundColor: "#007aff",
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginTop: 10,
   },
-  buttonText: {
-    ...Typography.button,
-    textTransform: 'uppercase',
-  },
+  buttonText: { color: "white", fontWeight: "700" },
+  error: { color: "red", marginTop: 4 },
 });
