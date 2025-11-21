@@ -23,6 +23,7 @@ export default function HomeStackNavigator() {
     <Stack.Navigator
       screenOptions={{
         ...getCommonScreenOptions({ theme, isDark, transparent: false }),
+        contentStyle: { backgroundColor: theme.backgroundRoot },
         headerRight: () => <HeaderTimer />,
         animation: 'slide_from_right',
       }}
