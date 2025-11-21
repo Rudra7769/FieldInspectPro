@@ -47,7 +47,7 @@ export default function FlatWorkFormScreen() {
 
   const handleOwnerNumberChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, '');
-    setOwnerNumber(digitsOnly);
+    setOwnerNumber(digitsOnly.slice(0, 10));
   };
 
   const handleSubmitCompleted = () => {
@@ -116,7 +116,7 @@ export default function FlatWorkFormScreen() {
 
   const isCompletedValid =
     !!ownerName.trim() &&
-    !!ownerNumber.trim() &&
+    ownerNumber.trim().length === 10 &&
     !!serviceType &&
     (serviceType !== 'Other' ? true : !!serviceOther.trim()) &&
     !!signature;
@@ -184,7 +184,11 @@ export default function FlatWorkFormScreen() {
                 keyboardType="number-pad"
                 value={ownerNumber}
                 onChangeText={handleOwnerNumberChange}
+                maxLength={10}
               />
+              {ownerNumber.length > 0 && ownerNumber.length !== 10 ? (
+                <ThemedText style={{ color: theme.error }}>Invalid number</ThemedText>
+              ) : null}
             </Card>
 
             <Card style={styles.section}>

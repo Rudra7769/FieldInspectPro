@@ -4,6 +4,7 @@ import DashboardScreen from "@/screens/DashboardScreen";
 import AssignmentFlatsScreen from "@/screens/AssignmentFlatsScreen";
 import FlatWorkFormScreen from "@/screens/FlatWorkFormScreen";
 import { HeaderTitle } from "@/components/HeaderTitle";
+import { HeaderTimer } from "@/components/HeaderTimer";
 import { useTheme } from "@/hooks/useTheme";
 import { getCommonScreenOptions } from "@/navigation/screenOptions";
 
@@ -22,6 +23,7 @@ export default function HomeStackNavigator() {
     <Stack.Navigator
       screenOptions={{
         ...getCommonScreenOptions({ theme, isDark, transparent: false }),
+        headerRight: () => <HeaderTimer />,
         animation: 'slide_from_right',
       }}
     >
